@@ -626,16 +626,14 @@ always @* begin
                                                   dmem_rdata[ 7: 0]};
                         2'b01: wb_rdata[31: 0] = {{24{dmem_rdata[15]}},
                                                   dmem_rdata[15: 8]};
-                        2'b10: wb_rdata[31: 0] = {{24{dmem_rdata[23]}},
-                                                  dmem_rdata[23:16]};
-                        2'b11: wb_rdata[31: 0] = {{24{dmem_rdata[31]}},
-                                                  dmem_rdata[31:24]};
+                        2'b10: wb_rdata[31: 0] = {{24{dmem_rdata[7]}},
+                                                  dmem_rdata[ 7: 0]};
+                        2'b11: wb_rdata[31: 0] = {{24{dmem_rdata[15]}},
+                                                  dmem_rdata[15: 8]};
                     endcase
                  end
         OP_LH  : begin
-                     wb_rdata = (wb_raddr[1]) ?
-                               {{16{dmem_rdata[31]}}, dmem_rdata[31:16]} :
-                               {{16{dmem_rdata[15]}}, dmem_rdata[15: 0]};
+                     wb_rdata = {{16{dmem_rdata[15]}}, dmem_rdata[15: 0]};
                  end
         OP_LW  : begin
                     wb_rdata = dmem_rdata;
@@ -644,14 +642,12 @@ always @* begin
                     case(wb_raddr[1:0])
                         2'b00: wb_rdata[31: 0] = {24'h0, dmem_rdata[7:0]};
                         2'b01: wb_rdata[31: 0] = {24'h0, dmem_rdata[15:8]};
-                        2'b10: wb_rdata[31: 0] = {24'h0, dmem_rdata[23:16]};
-                        2'b11: wb_rdata[31: 0] = {24'h0, dmem_rdata[31:24]};
+                        2'b10: wb_rdata[31: 0] = {24'h0, dmem_rdata[7:0]};
+                        2'b11: wb_rdata[31: 0] = {24'h0, dmem_rdata[15:8]};
                     endcase
                  end
         OP_LHU : begin
-                    wb_rdata = (wb_raddr[1]) ?
-                               {16'h0, dmem_rdata[31:16]} :
-                               {16'h0, dmem_rdata[15: 0]};
+                    wb_rdata = {16'h0, dmem_rdata[15: 0]};
                  end
         default: begin
                     wb_rdata = 32'h0;
