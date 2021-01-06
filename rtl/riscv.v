@@ -234,7 +234,7 @@ compressed_decoder rv32c_dec (
     .illegal_instr_o ( compress_illegal )
 );
 
-wire c_valid = is_compressed && !compress_illegal;
+wire c_valid = is_compressed && !compress_illegal && !ex_c_valid;
 
 always @(posedge clk or negedge resetb) begin
     if (!resetb) begin
