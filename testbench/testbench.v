@@ -334,7 +334,7 @@ end
         .wready(1'b0),
         .rresp (imem_rresp),
         .rdata (imem_rdata),
-        .raddr (imem_addr[31:2]-(IRAMBASE/4)),
+        .raddr (imem_addr[31:1]-(IRAMBASE/2)),
         .waddr (30'h0),
         .wdata (32'h0),
         .wstrb (4'h0)
@@ -351,7 +351,7 @@ end
         .wready(wready & dmem_wvalid),
         .rresp (dmem_rresp),
         .rdata (dmem_rdata),
-        .raddr (dmem_raddr[31:2]-(DRAMBASE/4)),
+        .raddr (dmem_raddr[31:1]-(DRAMBASE/2)),
         .waddr (dmem_waddr[31:2]-(DRAMBASE/4)),
         .wdata (dmem_wdata),
         .wstrb (dmem_wstrb)
