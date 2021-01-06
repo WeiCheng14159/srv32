@@ -63,6 +63,7 @@ module riscv (
 
     reg                     stall_r;
     wire            [31: 0] inst;
+    wire            [31: 0] decomp_inst;
     reg                     flush;
     reg             [ 1: 0] pipefill;
 
@@ -119,6 +120,7 @@ module riscv (
     wire                    ex_timer_irq;
     wire                    ex_sw_irq;
     wire                    ex_interrupt;
+    reg                     ex_c_valid;
 
 `ifdef RV32M_ENABLED
     reg                     ex_mul;
@@ -158,7 +160,7 @@ module riscv (
 
     integer                 i;
 
-assign inst                 = flush ? NOP : imem_rdata;
+assign inst                 = (flush || ex_c_valid) ? NOP : decomp_inst;
 assign if_stall             = stall_r || !imem_valid;
 assign dmem_waddr           = wb_waddr;
 assign dmem_raddr           = ex_memaddr;
@@ -221,6 +223,19 @@ always @* begin
     endcase
 end
 
+wire                    compress_illegal;
+wire                    is_compressed;
+
+// RV32C compressed instruction decoder
+compressed_decoder rv32c_dec (
+    .instr_i         ( imem_rdata ),
+    .instr_o         ( decomp_inst ),
+    .is_compressed_o ( is_compressed ),
+    .illegal_instr_o ( compress_illegal )
+);
+
+wire c_valid = is_compressed && !compress_illegal;
+
 always @(posedge clk or negedge resetb) begin
     if (!resetb) begin
         ex_imm              <= 32'h0;
@@ -243,6 +258,7 @@ always @(posedge clk or negedge resetb) begin
         ex_system_op        <= 1'b0;
         ex_pc               <= RESETVEC;
         ex_illegal          <= 1'b0;
+        ex_c_valid          <= 1'b0;
         `ifdef RV32M_ENABLED
         ex_mul              <= 1'b0;
         `endif // RV32M_ENABLED
@@ -278,6 +294,7 @@ always @(posedge clk or negedge resetb) begin
                                (inst[`FUNC3] == 3'b000);
         ex_system_op        <= inst[`OPCODE] == OP_SYSTEM;
         ex_pc               <= if_pc;
+        ex_c_valid          <= c_valid;
         ex_illegal          <= !((inst[`OPCODE] == OP_AUIPC )||
                                  (inst[`OPCODE] == OP_LUI   )||
                                  (inst[`OPCODE] == OP_JAL   )||
@@ -300,7 +317,8 @@ always @(posedge clk or negedge resetb) begin
                                  ((inst[`OPCODE] == OP_ARITHR) && (inst[`FUNC7] == 'h01)) ||
                                  `endif // RV32M_ENABLED
                                  (inst[`OPCODE] == OP_FENCE )||
-                                 (inst[`OPCODE] == OP_SYSTEM));
+                                 (inst[`OPCODE] == OP_SYSTEM)||
+                                 (c_valid));
         `ifdef RV32M_ENABLED
         ex_mul              <= (inst[`OPCODE] == OP_ARITHR) && (inst[`FUNC7] == 'h1);
         `endif // RV32M_ENABLED
@@ -506,6 +524,7 @@ always @(posedge clk or negedge resetb) begin
     end else if (!ex_stall) begin
         fetch_pc            <= (ex_flush) ? (fetch_pc + 4) :
                                (ex_trap)  ? (ex_trap_pc)   :
+                               (c_valid)  ? (if_pc    + 2) :
                                {next_pc[31:1], 1'b0};
     end
 end
