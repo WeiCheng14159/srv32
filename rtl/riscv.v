@@ -334,6 +334,17 @@ always @* begin
 end
 `endif
 
+// `ifndef SYNTHESIS
+// always @(*) begin
+//     if(c_valid) begin
+//         $display("Compressed instr 0x%08x at PC 0x%08x", imem_rdata[31: 0], if_pc[31: 0]);
+//         $display("Decompressed instr 0x%08x", decomp_inst[31: 0]);
+//     end else begin
+//         $display("Normal instr 0x%08x at PC 0x%08x", imem_rdata[31: 0], if_pc[31: 0]);
+//     end
+// end
+// `endif
+
 always @(posedge clk or negedge resetb) begin
     if (!resetb)
         ex_mem2reg          <= 1'b0;
@@ -667,7 +678,7 @@ assign ex_trap_pc   = (ex_systemcall && ex_imm[1:0] == 2'b10) ? // mret
                       csr_mepc :
                       csr_mtvec[0] ?
                       {csr_mtvec[31:2], 2'b00} + {26'h0, ex_mcause[3:0], 2'b00} :
-                      {csr_mtvec[31:2], 2'b00};
+                      {csr_mtvec[31:1], 1'b00};
 
 assign ex_csr_data  = ex_alu_op[2] ? {27'h0, ex_src1_sel[4:0]} : reg_rdata1;
 
