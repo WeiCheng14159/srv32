@@ -296,7 +296,7 @@ always @(posedge clk or negedge resetb) begin
                                (inst[`FUNC3] == 3'b000);
         ex_system_op        <= inst[`OPCODE] == OP_SYSTEM;
         ex_pc               <= if_pc;
-        ex_c_valid          <= c_valid;
+        ex_c_valid          <= wb_branch ? 1'b0 : c_valid;
         ex_illegal          <= !((inst[`OPCODE] == OP_AUIPC )||
                                  (inst[`OPCODE] == OP_LUI   )||
                                  (inst[`OPCODE] == OP_JAL   )||
