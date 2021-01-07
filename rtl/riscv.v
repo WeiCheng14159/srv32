@@ -65,6 +65,7 @@ module riscv (
     wire            [31: 0] inst;
     wire            [31: 0] decomp_inst;
     reg                     flush;
+    wire                    c_branch_kill;
     reg             [ 1: 0] pipefill;
 
     wire                    if_stall;
@@ -160,7 +161,8 @@ module riscv (
 
     integer                 i;
 
-assign inst                 = (flush || ex_c_valid) ? NOP : decomp_inst;
+assign c_branch_kill        = (wb_branch && c_valid);
+assign inst                 = (flush || ex_c_valid || c_branch_kill) ? NOP : decomp_inst;
 assign if_stall             = stall_r || !imem_valid;
 assign dmem_waddr           = wb_waddr;
 assign dmem_raddr           = ex_memaddr;
