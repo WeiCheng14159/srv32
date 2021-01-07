@@ -533,9 +533,9 @@ always @(posedge clk or negedge resetb) begin
     if (!resetb) begin
         fetch_pc            <= RESETVEC;
     end else if (!ex_stall) begin
-        fetch_pc            <= (ex_flush) ? (fetch_pc + 4) :
+        fetch_pc            <= (c_valid) ? (if_pc + 2) :
+                               (ex_flush) ? (fetch_pc + 4) :
                                (ex_trap)  ? (ex_trap_pc)   :
-                               (c_valid)  ? (if_pc    + 2) :
                                {next_pc[31:1], 1'b0};
     end
 end
